@@ -1,0 +1,3 @@
+<div>
+	admin index
+</div>

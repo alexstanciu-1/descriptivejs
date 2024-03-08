@@ -1,0 +1,188 @@
+
+/**
+	table - a db table
+	disk-table - a real table on disk | maybe aligned or not | if not, we will need a hash
+	rowid - 
+	disk-rowid ?!
+	pointer / disk-pointer
+	indexes ... tbd
+
+	then all is pushed into memory
+
+	some virtual object that can access the memory fast
+
+	room for locks and other data/metadata
+
+	# uuuh
+
+*/
+
+# copy segment - risk of keeping too much fragmented data into mem 
+
+# -> order keep the 'ole data into some segments
+
+# so it's all about ... when/how we push it into mem
+	# yeah
+
+	# some worker will ensure we have it ... in an optimum way
+	# cost to set it up 
+	# hash construction / perma
+
+# GREAT IDEA !!!!!!!!!!!!!! YEEEESZZZZ 
+# we create multiple structs on the fly !!!!
+
+# VARCHAR - I hate it ! - data is stored segmented ... it's ok ... we will handle that at some point
+
+# how will caching work with write-ahead ... caching only as used ... and dropped on restart ... why not ?!
+
+# even optimistic hashing for consecutive rows ... | hash + consecutive optimisitic | (background worker to align data)
+
+# hash (1) => ...
+# direct access and see if it's there | for m2m collections ... let the system optimize
+# 
+#		we get a cursor ... a bg worker feeds the cursor (next ... bla bla, points to records correctly)
+#			we may need multiple cursor for multiple columns ... we will see
+#  
+
+
+# locking vs write-ahead
+
+# Product => Product_01_ (id,name) , Product_02_ (id,code) ... depending on need, Product_Code (id/code-only)
+# Lots of data ... we can dump it, when no longer needed
+# 
+
+# allocation wise:
+	# file - host 1 disk-table
+
+# structure wise
+
+# database, table, table segment, 
+
+/*
+$t1 = microtime(true);
+
+$f = fopen('test_speed.txt', "wb");
+for ($i = 0; $i < 1000000; $i++)
+{
+	fwrite($f, (string)$i);
+	fflush($f);
+}
+fclose($f);
+
+$t2 = microtime(true);
+
+var_dump(1000000/($t2 - $t1));
+*/
+#echo "";
+
+
+/*
+
+WHAT IS A MUST
+	1. write ahead log ?! (on SSD , NVME ?!) - we are about to test ... :-) 
+		WAL only if we fall behind ... on a different thread
+			> write Q gets too large ... 
+			> if write Q is too long (even longer) -> error
+			> ongoing writes optimizations
+			
+		| NVME >= 600.000 writes/sec
+			
+		if we WAL, it should be permanent, put flags (in memory & wal on disk) to remove other records
+
+		recordset segment - remove flags on it ... adv write ... disadv read 
+
+	2. try to group data by model structure
+		let's say we have a order ... we will try to be in the same sector with most of the data
+			> when we ran out of space
+				
+			> when we have too much space
+				
+				size of strings / size of collections
+*/
+
+# create blocks of files that will, hopefully, be linear on disk
+# let's say 32 MB (configurable)
+# segment them based on what we put on
+
+# structures ... sizes
+
+# known sizes, dynamic sized
+
+# tables -> each table 2 files (second for dynamic data, with a hashmap that gives the position)
+				# for varchar ... support that first N chars are fixed ... if gt -> second table
+# indexes : tree/hash/ranged|brin(Block Range Index)
+	# pointers/reverse pointers
+
+	# ofc ... the WHERE outside the starting element ... well ... do it in stages 
+		# ex ... find all the offers, and join them with all the possible offers from the element
+		# so ... we will need some kind of index on the outer pointer (we will have) , intersect it with the 
+			# resulting offers
+
+# so each `object def` can be split-stored into multiple tables, some will be aligned, some will not, some will be aligned with each other
+# 
+
+/*$m0 = memory_get_usage();
+$x = new SplFixedArray(8);
+for ($i = 0; $i < 8; $i++)
+	$x[$i] = $i;
+unset($i);
+$m1 = memory_get_usage();
+*/
+
+# 224 | 64 | packed in string => int(64) | hmmm ... 
+/*
+$m0 = memory_get_usage();
+$x = "";
+for ($i = 0; $i < 8; $i++)
+	$x .= pack('i', $i);
+unset($i);
+$m1 = memory_get_usage();
+*/
+
+/*
+$m0 = memory_get_usage();
+$x = [];
+for ($i = 0; $i < 8; $i++)
+	$x[] = $i;
+unset($i);
+$m1 = memory_get_usage();
+*/
+
+$m0 = memory_get_usage();
+
+for ($i = 0; $i < 8; $i++)
+	${"x{$i}"} = $i;
+unset($i);
+$m1 = memory_get_usage();
+
+# use a long string to capture recs data | fixed length
+# always write ahead ... as we can do it in large batches
+# then we will need to re-group / vaccum somehow | or do it on the fly ?!
+#		we need to opimize a bit
+
+echo "<pre>";
+var_dump($m1 - $m0);
+
+# 
+# 
+# 
+# object
+#	segmented (multiple tables)
+#	
+#	id | compacted ?! how ?!
+#		
+# row/cell | group
+#
+#
+# how will pointers work ?! | atm a DB would use a index
+# 
+# why not do the same ?! ... and see how we can optimize later ... for example ... aligned ... and other stuff
+# 
+# 
+# pointers / joining | once the data is loaded ... pointer will be mem-linked | php - reference | how do we do that inside a string ... it will not be referenced ... 
+#		but can point to a 'shortcut' address hash
+# 
+# 
+# 
+
+

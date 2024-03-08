@@ -1,0 +1,25 @@
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "PWA Tutorial",
+  "orientation": "any",
+  "scope": ".",
+  "short_name": "PWA",
+  "start_url": ".",
+  "theme_color": "#fff",
+  "lang": "en",
+  "description": "This is a PWA tutorial",
+  "icons":[
+    {
+    "src":"images/icon-192x192.png",
+    "sizes":"192x192",
+    "type":"image/png"
+    },
+    {
+    "src":"images/icon-512x512.png",
+    "sizes":"512x512",
+    "type":"image/png"
+    }
+  ]
+}

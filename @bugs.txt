@@ -1,0 +1,4 @@
+
+- when nesting templates, it's not pulling the content as expected ! ex: <template q-if="$data.item"><template q-call="misc_func($data.item)"></template> ...
+- 2-way binds are broken in MS EDGE !
+

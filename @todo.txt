@@ -1,0 +1,95 @@
+
+- Components that load dynamically !
+
+- ProxyHandler.get with a function, ex: children.sort()
+
+- when a key is set - (deprecated)
+- FOR/each over an object
+
+- DATA Changes on the fly ! + Control over how we set data, wrap it in a transaction
+- more testing scenarios
+
+- for the proxy:get - if obj is Array - we need to avoid functions like: find,indexOf ... etc
+- SHOULD WE GROUP THE WATCHERS - when the expressions are identical ?! 
+
+DProxyHdl.set (&get,&has) - need a cleanup and some optimizations, byRef & recursive can be auto-detected and used ! - should be removed (byRef & recursive) from DProxy
+
+- avoid recursivity in ProxyHandler when not byRef/we are importing data - set() - WE NEED TO CHECK THIS !
+- we need a test for q-data
+- Removing of nodes ... cleanup (both DOM and our model)
+
+- Implement the rest of the `release` features that are needed/other system have
+	- (deprecated) Array with keys (needs fixing)
+	- for (Objects)
+	(done) - events ... etc
+	- if / else if / ... / else
+
+- scalar Arrays test ! $items = ['a', 'b', 'c'];  $items = [3, 2, 12];
+- work with Array.splice & other array functions to optimize/fix how DOM elements are updated
+- we need some standard for 2-ways binds (and binds in general) so that they work on multiple elements 
+		- a interface is needed ... and it shoudl be applied to RADIOS / SELECTS ... etc
+- able to bind OBJECTS not only scalars 
+- Multi-select
+
+- mustaches  {{ message }} + expression := {{ ok ? 'YES' : 'NO' }}
+- debounce
+- methods & dynamic properties (Computed Properties) definition per component
+- execute `q-data` (instead eval) in the parent data context to enable things like {first: children.first()}
+		make it `reactive`, so that if children.first changes ... there will be an update on the chain !
+- getter / setter | as `clean` => `validate` => `set` | display expression & extrat expression 
+		(ex: phone number formating, we need a expression to show it and a expression to get it back as a full & clean phone number)
+
+- AUTOMATED TESTING (dynamic data), WITH PERFORMANCE GOALS !!!
+
+- Partial implementation of a `Virtual DOM` - we most be able to setup DNodes without creating new DOM elements ! keep in mind the future `Compile` functionality
+
+PERFORMANCE
+- do not run the same expression in the same `scope` twice if no data was changed !!!
+- monomorphic calls - helps V8 (or others)
+- replace (for in) with (for of) - check browser support & misc
+
+CLEANUP
+- organise propery names and grouping in DNode ... we need to be consistent
+- propertly hide $w like in a FOR (var $x in ...) loop ! (must not be `looped`)
+- do we throw an error if trying to assign a referenced variable ??? ex q-for="child in children" ... (child = something) 
+				(same for function arguments: q-func="tree_list(arg_1)" .... (arg_1 = something) )
+				if NOT ... what should be the concept/logic for them ?!
+
+ONGOING
+- review code for : optizations, make it shorter, make it easier to read, comments!
+- switch from string literal to `` where it makes sense
+- use const / let where you should
+- REVIEW HOW events are triggered - are we efficient ?!
+
+STAGE 2
+- optimize the callback for simpler identifier expressions (ex: $idf.bla.bla['yes'].text => return $idf.bla.bla['yes'].text;)
+- when a DNode is deleted/removed, the ($watcher.id) should be reused so we don't create too many gaps ... we need to see!
+- support for defaults in functions (ex: func($arg = 12))
+- some expression handling could be optimized by splitting, for exmaple for a function call we can watch the expressions individually !
+- @TODO - IF / ELSE IF / ... / ELSE
+- do not DO any DOM adding/attrs ... etc (except DNode setup) - until after DProxy.process_changes finishes
+- remove <TEMPLATE> and replace it with a DOM Comment pointing to the template | CSS Like (issues, also JS may have) : .iterated-item:nth-child(odd) {} , .iterated-item:first-child {}
+- have some kind of `framerate` config , that will delay any DOM update until X ms have passed since the last update
+
+FAR FUTURE
+- Compile into JS code as much as possible to optimize || should be done with 'Virtual DOM'
+- replace proxy with getters/setters when model definition is available
+- Security CSF ?! - secure `with ($data)` / via proxyHandler.has() - so that only a short list of elements are available 
+
+			Better solution: Compile all the expressions and generate a JS file to be included !
+	
+			[this is stupid! fixing something that's not the initial problem!] 
+			(ex: except Math/Date ... we will answer with `true` , but proxyHandler.get will return `undefined` or `null`)
+			We also need to proxy other input like DOM elements in a special proxy with limited options
+			q-html - can be a problem !, q-text - escaped ok ... and no problem
+- Virtual DOM || should be done with 'Compile into JS'
+- For native APPs with something like NativeScript
+
+- https://developer.mozilla.org/en-US/docs/Web/API/Window/customElements
+- Create a modules version : 
+				<script type="module">
+				  import DescriptiveJS from 'https://cdn.jsdelivr.net/gh/descriptivejs/descriptivejs@v0.8/dist/descriptive.js';
+				  DescriptiveJS.start() // do we need this ?!
+				</script>
+
+- TypeScript ?!

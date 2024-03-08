@@ -1,0 +1,104 @@
+
+# memory blocks of 8K in groups of 64 MB 0.5 TB
+
+# pointing, grouping
+
+# how we point data, how we relate data
+
+# data structure
+		| DATA
+		+ unstructured data (not explicitly)
+
+# then how we move it
+	8K -> 64MB -> 0.5 TB
+	B3|S4|G5
+	as we move these blocks ... pointers will change ... will have to see
+	
+	how we store it on a line ...
+
+	# some props will be inline ... part of main group ... others part of other groups
+
+	# disk to mem <=> mem to disk
+
+	# chunk of mem => pass it to `C` | the `C` objects will handle it
+
+	pointers / references => TABLE|ROW
+	pointers => memory | on disk
+
+
+Category : id | name | code | $parent | $children
+Product  : id | name | code | $supplier | $categories
+Suppier  : id | name | code
+
+start very very simple and improve !
+
+1. fast load disk -> memory
+2. in memory processing
+
+SELECT | INSERT | UPDATE | DELETE + INDEXING
+
+# 1. how we allocate, how will it work
+		online schema changes
+		start simple & improve
+
+	++ INDEXING
+
+# 2. transactions
+		business as usual
+		readlock -> you can't change it, until all read locks are released
+		waiting on a lock ... what's the logic ?
+
+		5 locks ... have some kind of limit
+			a read lock does not mean it will be changed
+		
+		Stock = 5
+		MinStock = 4
+			# transactions run and lock stock
+			# 1 bit lock | anyone else will have to wait to write to it
+			# second transaction ... ... reads stock ?! will have to wait
+
+		COMMIT - can be optimistic ... write it down and prepare rollback | pesimistic ... put it on the WAL
+
+# 3. distribution (future)
+		- redundant & distributed
+
+
+# allocation, do we move data ? no ... no real benefit
+# WAL on disk | clean in mem
+# data is processed in mem
+
+# locking & transactions
+# the logic
+	# until the transaction is commited, all data stays the same
+	# write lock on readed cells
+	# deadlocks/race conditions
+
+		# how about only 1 writter ?!
+		# a transaction will have
+			# 1. read stage
+			# 2. ops stage
+			# 3. commit stage
+		# one solution would be to auto-restart transaction
+		# and so the transaction will be in DB-only ... and follow a certain logic
+		# I am ok with that
+
+	A SELECT must be atomic
+
+# online schema changes
+# replication
+# online backup
+	
+
+# 1TB DB (active/no files) - 
+
+
+ READ_COMMITTED
+			When the transaction-isolation level is set to READ_COMMITTED, PointBase releases the lock on a row as soon it returns the row data to the user. 
+			For example, if a query returns 100 rows, the system locks the first row, reads the data and returns it to the user. Before locking and reading 
+			from the second row, PointBase releases the lock on the first row to minimize resource usage and maximize concurrency. After all the reads are 
+			complete, no locks are held. 
+
+ SERIALIZABLE and REPEATABLE_READ
+			When the isolation level is set to SERIALIZABLE or REPEATABLE_READ, PointBase does not release locks on rows read until the end of the transaction. 
+			For example, if a query returns 100 rows, the system applies the lock on each row as it reads them. The system releases the locks only when it 
+			returns the data from all 100 rows to the user and the transaction is complete. 

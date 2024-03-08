@@ -1,0 +1,54 @@
+
+
+<input type="text" | alias `email`,`hidden`,`number`,`password`,`search`,`tel`,`url`,`week`
+	 size="30" minlength="4" maxlength="8"
+<input type="radio" - multiple with the same name, only one active
+<input type="checkbox" 
+<select ++ multi option (`multiple`)
+<textarea 
+<input type="checkbox" - over a collection !!!
+
+<input type="file"
+
+<input type="button" - only sets the value if clicked (to be checked!)
+<input type="image"
+<input type="reset"
+<input type="submit"
+
+@todo - special security measures for `password`
+
+===================================================================================================
+
+[done] q-init
+[done] q-show
+[done] q-if - cleanup / hide / show back
+
+[done] non-return for init @ events
+
+[done] :CLASS v-bind:class="{ active: isActive, 'text-danger': hasError }"
+[done] <div v-bind:style="{ color: activeColor, fontSize: fontSize + 'px' }"></div>
+
+[done] when we add new HTML - make it reactive ! (it is now !)
+
+[done] @click.away="open = false" (can be expensive - we need a plan !)
+
+q-model
+	[done] - more html components
+	- a standard way to work with
+	
+q-for - with keys
+	<template q-for="item in items" :key="item">
+
+
+$el 			Retrieve the root component DOM node.
+q-ref -> $refs 			Retrieve DOM elements marked with x-ref inside the component.
+$event 			Retrieve the native browser "Event" object within an event listener.
+$dispatch 		Create a CustomEvent and dispatch it using .dispatchEvent() internally.
+$nextTick 		Execute a given expression AFTER Alpine has made its reactive DOM updates.
+$watch 			Will fire a provided callback when a component property you "watched" gets changed.
+
+
+$el - is it a standard ? | we have them
+$event -  | we have them
+
+$refs / is a standard - not recommended !
