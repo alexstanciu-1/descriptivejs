@@ -2,8 +2,10 @@ old/
 old_code/
 ideas/
 dist/
+nbproject/
 
 old/**
 old_code/**
 ideas/**
 dist/**
+nbproject/**
