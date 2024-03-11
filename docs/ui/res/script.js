@@ -1,5 +1,5 @@
 
-import {$} from 'https://alex-dev-001.softdev.ro/descriptivejs/src/functions.js';
+import {$} from 'https://js-dev.descriptive.app/src/functions.js';
 
 window.onload = function() {
 

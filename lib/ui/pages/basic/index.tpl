@@ -1,5 +1,3 @@
-<!doctype html>
-<html>
 <head>
 	<title>Descriptive JS docs</title>
     <meta name="description" content="Descriptive JS docs" />
@@ -31,4 +29,3 @@
 	<script src="https://js-dev.descriptive.app/src/core/main.js" type="module"></script>
 	<script src="ui/res/script.js" type="module"></script>
 </body>
-</html>

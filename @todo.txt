@@ -1,3 +1,6 @@
+2024:
+	- review server-side security - avoid serving files that may create a security risk
+====================
 
 - Components that load dynamically !
 
