@@ -1,34 +1,56 @@
 
 import {DLib, DConfig, D_key_none} from './main.js';
 import {DProxy, DProxyHdl, DDelete_Sym, DAnyProp_Sym} from './data-proxy.js';
-import {DApiData} from './api-data.js';
+
+// import {DApiData} from './api-data.js';
+
 import {$} from './functions.js';
+import DModel from './model.js';
 import {$Regex} from './regex.js';
 
 export const regex_ext = /(?:\.([^\.]+))?$/;
 
 export class DNode
 {
+	id;
+	dom;
+	parent;
+	children = [];
+	attrs;
+	is_loop = false;
+	root = null;
+	is_tpl = false;
+	inside_tpl = false;
+	data;
+	data_key;
+	local_vars;
+	// expressions as functions
+	exps = {};
+	level;
+	
+	#_new_ctx;
+	#_obj;
+	
 	constructor()
 	{
 		this.id = ++DLib._id;
 		DLib.nodes[this.id] = this;
-		this.dom = undefined;
-		this.parent = undefined;
-		this.children = [];
-		this.attrs = undefined;
-		this.is_loop = false;
-		this.root = null;
-		this.is_tpl = false;
-		this._new_ctx = undefined;
-		this.inside_tpl = false;
-		this.data = undefined;
-		this._obj = undefined;
-		this.data_key = undefined;
-		this.local_vars = undefined;
+		// this.dom = undefined;
+		// this.parent = undefined;
+		// this.children = [];
+		// this.attrs = undefined;
+		// this.is_loop = false;
+		// this.root = null;
+		// this.is$k_tpl = false;
+		// this._new_ctx = undefined;
+		// this.inside_tpl = false;
+		// this.data = undefined;
+		// this._obj = undefined;
+		// this.data_key = undefined;
+		// this.local_vars = undefined;
 		// expressions as functions
-		this.exps = {};
-		this.level;
+		// this.exps = {};
+		// this.level;
 	}
 	
 	/**
@@ -40,11 +62,8 @@ export class DNode
 	 * 
 	 * @returns {undefined}
 	 */
-	init ($dom, $parent, $attrs, $run, $setup_root, $ini_data)
+	init ($dom, $parent, $attrs, $run, $setup_root, $init_data, $init_def)
 	{
-		// if (!$dom)
-			// throw new Error('The `$dom` argument is mandatory');
-		
 		// update idx_dom
 		if ($dom)
 		{
@@ -63,13 +82,19 @@ export class DNode
 		if (this.level === undefined)
 			this.level = $parent ? ($parent.level + 1) : 0;
 		
-		if (this._new_ctx === undefined)
+		if ($init_data || $init_def)
+		{
+			if (this._new_ctx)
+				throw new Error('$init_data || $init_def on existing ctx');
+			this._new_ctx = true;
+		}
+		else if (this._new_ctx === undefined)
 			this._new_ctx = (this.root === this) || (!this.parent);
 		if (this._new_ctx && (!this.local_vars))
 			this.local_vars = {};
-
+		
 		// in contex only data init
-		this.init_data(false, $ini_data);
+		this.init_data(false, undefined, $init_def);
 		if ($setup_root)
 			$setup_root.data = this.data;
 		
@@ -95,10 +120,21 @@ export class DNode
 		var $q_data_str = (!this.is_tpl) ? this.attrs['q-data'] : null;
 		if ($q_data_str)
 		{
-			var $q_data = eval("( " + $q_data_str + " )");
-			// alert('this.setData : ' + $q_data_str);
+			var $q_data = eval("( " + $q_data_str + " )"); // because it can be an expression
 			this.setData($q_data);
 		}
+		else
+			this.setData({});
+		
+		if ($init_data)
+		{
+			const $t1 = new Date();
+			DModel.import(this.data, $init_data, $init_def);
+			const $t2 = new Date();
+			console.log('DNode::DModel.import time=' + ($t2 - $t1));
+		}
+		
+		/* // this is deprecated
 		var $q_data_api = this.attrs['q-api-data'] ? eval("( " + this.attrs['q-api-data'] + " )") : null;
 		if ($q_data_api)
 		{
@@ -118,7 +154,7 @@ export class DNode
 				$api.$init();
 			}
 		}
-		
+		*/
 		// if (($run === undefined) || $run)
 			// this.run_exps(true, true);
 	   if ($run)
@@ -527,7 +563,7 @@ export class DNode
 	 * @param {boolean} $force 
 	 * @returns {undefined}
 	 */
-	init_data($force = false, $ini_data)
+	init_data($force = false, $ini_data = undefined, $init_def = undefined)
 	{
 		var $q_data_str = (!this.is_tpl) ? this.attrs['q-data'] : null;
 				
@@ -538,7 +574,8 @@ export class DNode
 				this._obj = $ini_data ? $ini_data : {};
 				if (this.parent)
 					this._obj.$n = this.parent._obj;
-				this.data = this._obj.$p = new Proxy(this._obj, DProxyHdl);
+				
+				this.data = this._obj.$p = new Proxy(this._obj, $init_def ? DProxyHdl._setup($init_def) : DProxyHdl);
 				// we need to register the proxy
 			}
 			else
@@ -797,7 +834,7 @@ export class DNode
 						}
 						// @TODO - better filter this as an event
 						this.setupExp($val, $parts[0], false);
-						DLib.dom_listners[$parts[0].substr(1)].push([this.dom, this.modifs]);
+						DLib.dom_listners[$parts[0].substring(1)].push([this.dom, this.modifs]);
 					}
 					
 					break;
@@ -886,11 +923,6 @@ export class DNode
 				DProxy.wt = null;
 		}
 		
-		// if ((this.id === 600) || (this.id === 1333))
-		// if (this.id === 1333)
-		/*if (!DProxy.executeExpSum)
-			DProxy.executeExpSum = 0;
-		DProxy.executeExpSum += (window.performance.now() - $t1);*/
 		return $ret;
 	}
 	
@@ -987,7 +1019,9 @@ export class DNode
 
 		var $virtual_list = $exp_return;
 		if (($virtual_list === null) || ($virtual_list === undefined))
-			$virtual_list = {$length: 0};
+			$virtual_list = {length: 0};
+
+		// console.log('exp_changed_for', $virtual_list);
 
 		var $dom_frag = document.createDocumentFragment();
 		var $dom_frag_length = 0;
@@ -1085,62 +1119,78 @@ export class DNode
 	
 	/**
 	 * @param {string} $val
-	 * @param {string} $load_js
 	 * 
 	 * @returns {undefined}
 	 */
-	ctrl_dynamic($val, $load_js)
+	async ctrl_dynamic($val)
 	{
+		// console.log('ctrl_dynamic: ' + $val);
+		
 		const $ext = regex_ext.exec($val);
 		if (!$ext)
 			return false;
+
+		if (this._ctrl_link_)
+			// release
+			this.ctrl_dynamic_release();
+		if ((!$val) || (!$val.length))
+			return;
 		
-		// @TODO - if empty ... release the template !
+		var $data_obj = null;
+		const $json_possible_url = $val.substring(0, $val.length - 3) + 'json';
+		const $data_resp_promise = $.fetch($json_possible_url);
+
+		const $resp_promise = $.fetch($val);
 		
-		if ($ext[1] === 'js')
+		const $load_js = $val.substring(0, $val.length - 3) + 'js';
+		const $rbr = ($.request.base_href !== undefined) ? (($.request.base_href === "") ? '/' : $.request.base_href) : null;
+		const $import_promise = $.import((($rbr && ($load_js[0] !== '/') && ($load_js[0] !== '.')) ? $rbr : '') + $load_js);
+		
+		const $load_model = $val.substring(0, $val.length - 3) + 'model.js';
+		const $model_promise = $.import((($rbr && ($load_model[0] !== '/') && ($load_model[0] !== '.')) ? $rbr : '') + $load_model);
+		
+		const $resp = await $resp_promise;
+		const $html = await $resp.text();
+		// @TODO - if the html is not a single node ... we need to wrap it and loop 
+		// to setup the data
+
+		this.dom.insertAdjacentHTML("afterend", $html);
+
+		const $dom = this.dom.nextElementSibling;
+		if (!$dom)
 		{
-			this.ctrl_dynamic($val.substring(0, $val.length - 2) + "tpl", $val);
+			throw new Error('Failed to find inserted element. ' + $html);
 		}
-		else if ($ext[1] === 'tpl')
+
+		// @TODO ... we do not need to create a reactive node ... we just need to scan !
+		// find the parent ... and add it in !!!
+
+		var $model_def;
+		if ($model_promise)
+			var {default: $model_def} = await $model_promise;
+		
+		if ($data_resp_promise)
 		{
-			(async () => {
-				
-				var $data_obj = null;
-				try
-				{
-					const $data_resp = await fetch($val.substring(0, $val.length - 3) + 'json');
-					$data_obj = await $data_resp.json();
-				}
-				catch ($tmp_ex) {}
-								
-				const $resp = await fetch($val);
-				const $html = await $resp.text();
-				
-				if (this._ctrl_link_)
-					// release
-					this.ctrl_dynamic_release();
-				
-				// @TODO - if the html is not a single node ... we need to wrap it and loop 
-				// to setup the data
-				
-				this.dom.insertAdjacentHTML("afterend", $html);
-				
-				var $dom = this.dom.nextElementSibling;
-				
-				// @TODO ... we do not need to create a reactive node ... we just need to scan !
-				// find the parent ... and add it in !!!
-				
-				var $tpl_ctx = this._ctrl_link_ = new DNode();
-				// ways to link it to data !
-				$tpl_ctx.init($dom, this.parent, $tpl_ctx.dom_get_attrs($dom), true, null, $data_obj);
-				
-				if ($load_js)
-				{
-					// alert((($.request.base_href && ($load_js[0] !== '/')) ? $.request.base_href : '') + $load_js);
-					await import((($.request.base_href && ($load_js[0] !== '/') && ($load_js[0] !== '.')) ? $.request.base_href : '') + $load_js);
-				}
-			 })();
+			const $data_resp = await $data_resp_promise;
+			try {  $data_obj = await $data_resp.json(); }
+			catch ($ex) {console.warn('JSON parse failed for: ' + $json_possible_url); console.log($ex);}
 		}
+
+		var $tpl_ctx = this._ctrl_link_ = new DNode();
+		// ways to link it to data !
+		$tpl_ctx.init($dom, this.parent, $tpl_ctx.dom_get_attrs($dom), true, null, $data_obj, $model_def);
+
+		if ($import_promise)
+		{
+			const {default: $import_obj} = await $import_promise;
+			if ($import_obj)
+			{
+				$tpl_ctx._jsobj_ = new $import_obj;
+				if ($tpl_ctx._jsobj_.boot)
+					$tpl_ctx._jsobj_.boot();
+			}
+		}
+		
 		// @TODO - how about CSS ?!
 		// @TODO - how about images ?! - do we need to do anything ?!
 	}
@@ -1154,6 +1204,9 @@ export class DNode
 	
 	remove()
 	{
-		// @TODO
+		// @TODO - check if there is more to cleanup !
+		if (this.parent?.children)
+			this.parent.children.splice(this.parent.children.indexOf(this), 1);
+		this.dom.remove();
 	}
 }

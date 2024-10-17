@@ -175,14 +175,22 @@
 			
 		<!-- <script type="text/javascript" src="../src/tests/data.js"></script> -->
 		<!--
-		<script type="text/javascript" src="../src/functions.js"></script>
-		<script type="text/javascript" src="../src/regex.js"></script>
-		<script type="text/javascript" src="../src/dnode.js"></script>
-		<script type="text/javascript" src="../src/main.js"></script>
-		<script type="text/javascript" src="../src/data-proxy.js"></script>
-		<script type="text/javascript" src="../src/load-test-data.js"></script>
+		<script type="text/javascript" src="../src/core/functions.js"></script>
+		<script type="text/javascript" src="../src/core/regex.js"></script>
+		<script type="text/javascript" src="../src/core/dnode.js"></script>
+		<script type="text/javascript" src="../src/core/main.js"></script>
+		<script type="text/javascript" src="../src/core/data-proxy.js"></script>
 		-->
-		<script src="../../src/main.js" type="module"></script>
+		<script type="module">
+			import '/config.js';
+			import '/@src/core/main.js';
+			import '/@src/core/dnode.js';
+			import '/@src/core/functions.js';
+			import '/@src/core/url-controller.js';
+			import '/@src/core/data-proxy.js';
+			import '/@src/core/api-data.js';
+			import '/@src/core/regex.js';
+		</script>
 		<?php if ($_GET['test'] === 'play') { ?>
 			<script type="text/javascript" src="../src/play.js"></script>
 		<?php } ?>

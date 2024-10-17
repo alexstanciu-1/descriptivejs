@@ -13,6 +13,7 @@ export const $url_def = {
 	index: function ($) {
 		// alert('admin: index!');
 		$.ui.content.template = 'ui/_admin/index.tpl';
+		return true;
 	},
 
 	notfound: function () {

@@ -1,5 +1,9 @@
 
-import {$} from 'https://js-dev.descriptive.app/src/functions.js';
+// import {$} from 'https://js-dev.descriptive.app/src/core/functions.js';
+
+const $ = window.$;
+
+// alert($);
 
 window.onload = function() {
 
@@ -14,7 +18,7 @@ window.onload = function() {
 	/*
 	// for fun only ...
 	setTimeout(function (){
-		$.url[0] = 'quick-start';
+		$.request.url[0] = 'quick-start';
 	}, 1700);
 	*/
 };

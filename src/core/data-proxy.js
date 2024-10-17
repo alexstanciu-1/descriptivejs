@@ -1,4 +1,5 @@
 import {DLib, DConfig, D_key_none} from './main.js';
+import DModel from './model.js';
 
 export const DDelete_Sym = Symbol('DDelete_Sym');
 export const DAnyProp_Sym = Symbol('DAnyProp_Sym');
@@ -13,6 +14,7 @@ export const DProxy = {
 	tr: null, // inside a transaction
 	max_proc_time: 5000,
 	
+	exec_queries: false,
 	
 	in_exec: false, // inside an exec op
 	
@@ -38,7 +40,7 @@ export const DProxy = {
 		// alert('process_changes: ' + DProxy.executeExpCount + " | " + DProxy.executeExpSum + " ms | Since start: " + (new Date() - DLib.startDate));
 		// DLib.log('DProxy::process_changes', JSON.stringify(this.changes));
 		// var $s_time = window.performance.now();
-		// var $t1 = performance.now();
+		// const $t1 = performance.now();
 
 		var $map = [];
 		var $has_elements;
@@ -142,6 +144,8 @@ export const DProxy = {
 			console.log('FINISH process_changes');
 		// alert('process_changes: ' + DProxy.executeExpCount + " | " + DProxy.executeExpSum + " ms | Since start: " + (new Date() - DLib.startDate));
 		// var $t2 = performance.now();
+		// console.log("commit time: " + ($t2 - $t1));
+		// alert(performance.now());
 		// alert(($t2 - $t1));
 		// document.querySelector('#elapsed-time').textContent = ($t2 - $t1) + " ms";
 	}
@@ -151,8 +155,9 @@ export const DProxy = {
 
 export const DProxyHdl = {
 
-	obj_id_next: 1,
+	// obj_id_next: 1, 
 	$gp: false, // get proxy
+	$md: undefined, // data model
 	
 	get: function(obj, prop, proxy)
 	{
@@ -167,15 +172,15 @@ export const DProxyHdl = {
 				return undefined;
 			else if ((obj.$y || obj.$t) && ((prop === '$init') || (prop === '$populate')))
 				return DApiData.prototype[prop]; // [prop];
-			else if (this.$gp)
-				return [obj, proxy];
+			else if (DProxyHdl.$gp)
+				return [obj, proxy, this];
 		}
 		// this is not the best ... we need to understand !
 		if (prop === Symbol.unscopables)
 			// console.log('obj[Symbol.unscopables]', obj[Symbol.unscopables]);
 			return obj[Symbol.unscopables];// || {$w: true};
-		else if (prop === 'console')
-			return console;
+		// else if (prop === 'console')
+		//	return console;
 		else if (prop === DAnyProp_Sym)
 		{
 			if (DProxy.wt)
@@ -236,15 +241,35 @@ export const DProxyHdl = {
 		return $is_obj ? $r.$p : $r;
 	},
 	
-	set: function(obj, prop, value, proxy, byRef, $async_handler, $debug)
+	set: function(obj, prop, value, proxy, byRef, $model, $debug)
 	{
+		// console.log('set: ', prop);
 		if ($debug)
 			console.log(' ----- set [byRef=' + ((byRef !== undefined) ? byRef : DProxy.byRef) + '] ::' + prop + ' | value: ', value, ' | obj: ', obj, ' | proxy: ', proxy);
 		
-		// if ((prop === 'length') && (value >= 1)) // the length of an array is undetectable :-(
-		//	alert('yooooy: ' + obj[prop]);
-		
-		var $is_array_len = ((prop === 'length') && Array.isArray(obj)); // array.length is already set to the new value, so we need to fix
+		const $obj_is_arr = Array.isArray(obj);
+
+		// handle setter if present
+			const $prop_model = $model ?? ($obj_is_arr ? this?.$md : this?.$md?.[prop]);
+			if ($prop_model && (!$obj_is_arr))
+			{
+				var $setter, $query;
+				if (($setter = $prop_model?.['@set']))
+					value = $setter.call(proxy, value, prop);
+				// handle query
+				if (DProxy.exec_queries && ($query = $prop_model?.['@query']))
+				{
+					const $ref_this = this;
+					DModel.query($query, obj, prop, ($query_val) => {
+						if ($query.to)
+							(obj?.[prop]) ? (obj[prop].$p[$query.to] = $query_val) : (obj.$p[prop][$query.to] = $query_val);
+						else
+							$ref_this.set(obj, prop, $query_val, proxy, byRef, $model, $debug);
+					});
+				}
+			}
+
+		var $is_array_len = ((prop === 'length') && $obj_is_arr); // array.length is already set to the new value, so we need to fix
 		var $old = $is_array_len ? obj._len : obj[prop];
 		if (value === $old)
 			// no change
@@ -260,9 +285,9 @@ export const DProxyHdl = {
 		if (val_is_obj)
 		{
 			// check for proxy
-			this.$gp = true;
+			DProxyHdl.$gp = true;
 			var $p_obj = value.$$qproxy$;
-			this.$gp = false;
+			DProxyHdl.$gp = false;
 			$val = $p_obj ? $p_obj[0] : value;
 			if ($p_obj)
 			{
@@ -281,14 +306,15 @@ export const DProxyHdl = {
 			// @TODO - do we act ?
 			return true;
 		
+		const $commit = DProxy.begin();
 		try
 		{
-			var $commit = DProxy.begin();
 			// console.log('DProxy.begin', $commit);
 			var $has_changes = true;
 			
 			// handle objects
 			var $new_obj;
+			
 			if (val_is_obj)
 			{
 				if ((byRef === undefined) || (byRef === null))
@@ -314,17 +340,16 @@ export const DProxyHdl = {
 				else
 				{
 					$new_obj = $val_is_arr ? [] : {};
-					$new_obj.$z = this.obj_id_next++;
-					$new_obj.$p = new Proxy($new_obj, DProxyHdl);
+					
+					// if ($prop_model)
+					//	console.log('more proxy ... ' + prop, $prop_model ? ($prop_model.$ph ?? DProxyHdl._setup($prop_model)) : DProxyHdl);
+					
+					$new_obj.$p = new Proxy($new_obj, $prop_model ? ($prop_model.$ph ?? DProxyHdl._setup($prop_model)) : DProxyHdl);
 					obj[prop] = $new_obj;
 					$has_changes = true;
 				}
-				if ($async_handler)
-					$new_obj.$y = $async_handler;
-				
-				/*console.log(obj, prop, $new_obj, value);
-				if ($debug)
-					alert('$has_changes = true');*/
+				// if ($async_handler)
+				//	$new_obj.$y = $async_handler;
 				
 				if ((obj.$t /* || (obj.$y && (prop === 'items')) */ ) && ((!$new_obj.$t) || $has_changes)) // link it to the parent !
 				{
@@ -367,14 +392,17 @@ export const DProxyHdl = {
 					else
 						DProxy.changes[$id] = $wtch;
 				}
-				
-				$w_any = $ow[DAnyProp_Sym]; 
+ 
+				$w_any = $ow[DAnyProp_Sym];
+				// console.log('sggggg', $w_any, DProxy.changes);
 				for (let $id in $w_any)
 				{
 					var $wtch = $w_any[$id];
 					var $dli = DProxy.changes[$id];
-					if ($dli)
-						(typeof($wtch) === 'object') ? Object.assign($dli, $wtch) : $dli[$wtch] = true;
+					if ($dli && (typeof($dli) === 'object'))
+					{
+						(typeof($wtch) === 'object') ? Object.assign($dli, $wtch) : ($dli[$wtch] = true);
+					}
 					else
 						DProxy.changes[$id] = $wtch;
 				}
@@ -395,13 +423,13 @@ export const DProxyHdl = {
 						for (var $i = 0; $i < $val.length; $i++)
 							// $proxy[$i] = $val[$i];
 							// proxy, byRef, $async_handler, $debug
-							this.set($new_obj, $i, $val[$i], $proxy, undefined, undefined, $debug);
+							this.set($new_obj, $i, $val[$i], $proxy, undefined, $prop_model, $debug);
 						
 						// @TODO - optimize this | it's just for testing
 						if ($val.length < $new_obj.length)
 						{
 							for (var $i = $val.length; $i < $new_obj.length; $i++)
-								this.set($new_obj, $i, DDelete_Sym, $proxy, undefined, undefined, $debug);
+								this.set($new_obj, $i, DDelete_Sym, $proxy, undefined, $prop_model, $debug);
 							$new_obj.length = $val.length;
 						}
 					}
@@ -410,7 +438,7 @@ export const DProxyHdl = {
 						// @TODO :: IN CASE WE REUSE !!! WE NEED TO MAKE THIS SMARTER !!!
 						for (var $i in $val)
 							// $proxy[$i] = $val[$i];
-							this.set($new_obj, $i, $val[$i], $proxy, undefined, undefined, $debug);
+							this.set($new_obj, $i, $val[$i], $proxy, undefined, $prop_model?.[$i], $debug);
 						
 						if (DProxy.mode === DProxy.MODE_REPLACE)
 						{
@@ -419,7 +447,7 @@ export const DProxyHdl = {
 								if (($i[0] === '$') && ($i.length === 2))
 									continue;
 								else if (!($i in $val))
-									this.set($new_obj, $i, DDelete_Sym, $proxy, undefined, undefined, $debug);
+									this.set($new_obj, $i, DDelete_Sym, $proxy, undefined, $prop_model?.[$i], $debug);
 							}
 						}
 					}
@@ -504,22 +532,35 @@ export const DProxyHdl = {
 	passByRef: function(obj, prop, value, proxy)
 	{
 		this.set(obj, prop, value, proxy, true);
-	}
+	},
 	
 	/*
+	getOwnPropertyDescriptor: function(target, key)
+	{
+		console.log('Proxy::getOwnPropertyDescriptor::target', target);
+		console.log('Proxy::getOwnPropertyDescriptor::key', key);
+		alert('getOwnPropertyDescriptor');
+        return { enumerable: true, configurable: true, value: proxy[key] };
+    }
+	*/
+	
 	ownKeys: function(obj)
 	{
-		var $k = Reflect.ownKeys(obj);
-		if (($k[0] === '$w') || ($k[0] === '$n'))
+		const $k = Reflect.ownKeys(obj);
+		if ($k[0] === '$p')
 			$k.shift();
+		//if (($k[0] === '$w') || ($k[0] === '$n'))
+		//	$k.shift();
 		return $k;
-	}
-	*/
-};
-/*
-const DProxyHdl_Array = {
+	},
 	
-	get: DProxyHdl.get,
-	set: DProxyHdl.set,
-	has: DProxyHdl.has
-};*/
+	_setup: function($model)
+	{
+		var $ph = $model.$ph ?? undefined;
+		if (!$ph) {
+			$model.$ph = $ph = {...DProxyHdl};
+			$ph.$md = $model;
+		}
+		return $ph;
+	}
+};

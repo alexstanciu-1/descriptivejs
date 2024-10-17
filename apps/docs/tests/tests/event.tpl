@@ -127,7 +127,7 @@
 	
 	<hr/>
 	
-	<div q-init="console.log('init #1'); console.log('init #2'); console.log('init #3'); ">
+	<div q-init="$.console.log('init #1'); $.console.log('init #2'); $.console.log('init #3'); ">
 		Init only !
 	</div>
 	

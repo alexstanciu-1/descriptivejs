@@ -1,8 +1,48 @@
 2024:
-	- review server-side security - avoid serving files that may create a security risk
-====================
 
-- Components that load dynamically !
+	- the url controller needs to be a bit more `descriptive` ... directives like `assign` , return true / false ... etc
+
+	- pre-load js/css/...etc/ in config(s)
+	- ways to customise every aspect in the sample e-comm ... from the layer including it
+
+	- cache data (.json) for controls (and the JS/model ... etc ) - we only want to load it once
+		- also the what we do in DNode.init ... may also be pre-prepared so it will go faster
+
+	- a way/ways to traverse componenets on the page
+	- a way/ways to traverse DATA on the page, and relative to templates
+
+	- DNode.init ... avoid eval on `$ini_data` argument ... can we set it as a JS ?!
+
+	- review server-side security - avoid serving files that may create a security risk
+	- test with both absolute and relative paths ! both should work !
+	- test absolute and relative paths with and without <base href='...' />
+	- isolate resources requests : `@` ... this will resolve conflicts with the URL controller and return NOT-FOUND from server-side
+	- version instead of timestamp for resources that we do not edit atm
+	- resource bundling - and JS bundling ... as we will have a lot of small files at some point 
+				for non-JS we can use the JS Cache API
+				this will work for PWAs for JS also
+	- pre-load to avoid round-trips. auto-detect (if possible) & setup
+		: pre-caching event to all components to avoid round-trip
+	- components / patch|inherit
+	- export default in config JSs and load them as a module
+	- special shortcut for : onclick='$.url.set({content: "intro"})'
+	- multi-language helpers
+
+	- changes only (as option) - on submited data
+	- Unix domain sockets (native only) | should work on iOS , android , windows 
+
+	- [perf] replace `if (Object.keys(this.changes).length > 0)` with X in this.changes
+	- review code to be ES6 consistent (ex: function : , prop: ... make it ES6 way)
+
+	- directive in the UI model to inherit from the global model - server side resolve
+
+	- one-time mvvm directive ... that could be resolved by server-side rendering too
+
+	- multiple .tpls
+
+===========================================================================================================
+
+[DONE] - Components that load dynamically !
 
 - ProxyHandler.get with a function, ex: children.sort()
 
