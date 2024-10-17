@@ -1,0 +1,8 @@
+{
+	"app_dirs" : {
+		"src": "../../src/",
+		"e-comm": "../samples/e-comm/"
+	},
+
+	"dev_ip" : "84.232.237.17"
+}

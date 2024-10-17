@@ -1,0 +1,40 @@
+
+!!! as it grows ... split in some modules with individual importmap & files state
+
+for example ... we would not load e-comm ... until we need it
+also ... some libs may be declared static ... and only have some version on them ... and there is no need for a state
+
+=================================================================
+
+1. http cache header
+2. send files modif to browser (can be version later on)
+3. js will request files with version
+
+import map
+
+<script type="importmap">
+    {
+        "imports": {
+            "moduleA": "./js/A.js?version=<?=VERSION?>",
+            "moduleB": "./js/B.js?version=<?=VERSION?>",
+            ...
+        }
+    }
+</script>
+
+modules will have some prefix that PHP will respect : ex: @ecomm: ... 
+
+then we can use regular imports ... execept on modules .... ?! ... they should work tbh
+
+if we use import ... how can we bundle them later on ?!
+
+=== OLD ...
+
+2 issues 
+	- import/res over different projects/modules
+		import.meta.resolve() ... would do it
+		or , better ?
+		(this.rel ?? '') + 'e-comm/ui/base/home.tpl';
+	- import/res if bundled
+		USE BLOB/URL to do a dynamic import
+			const blob = new Blob([str], { type: 'text/javascript' })

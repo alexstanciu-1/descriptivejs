@@ -1,0 +1,15 @@
+{
+	"bundles" : {
+		"default" : {
+			"items" : [
+				"core/dnode.js",
+				"core/functions.js",
+				"core/url-controller.js",
+				"core/data-proxy.js",
+				"core/api-data.js",
+				"core/regex.js",
+				"core/main.js"
+			]
+		}
+	}
+}

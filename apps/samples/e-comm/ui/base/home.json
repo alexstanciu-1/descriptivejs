@@ -1,0 +1,96 @@
+{
+	"categories" : { 
+		"data": [
+			{
+				"id": 1,
+				"name": "categ #1"
+			},
+			{
+				"id": 2,
+				"name": "categ #2"
+			},
+			{
+				"id": 3,
+				"name": "categ #3"
+			},
+			{
+				"id": 4,
+				"name": "categ #4"
+			}
+		]
+	},
+	
+	"recommended_products" : { 
+		"data": [
+			{
+				"id": 1,
+				"name": "prod #1"
+			},
+			{
+				"id": 2,
+				"name": "prod #2"
+			},
+			{
+				"id": 3,
+				"name": "prod #3"
+			},
+			{
+				"id": 4,
+				"name": "prod #4"
+			}
+		]
+	},
+	
+	"products" : { 
+		"data": [
+			{
+				"id": 1,
+				"name": "prod #1"
+			},
+			{
+				"id": 2,
+				"name": "prod #2"
+			},
+			{
+				"id": 3,
+				"name": "prod #3"
+			},
+			{
+				"id": 4,
+				"name": "prod #4"
+			},
+			{
+				"id": 5,
+				"name": "prod #5"
+			},
+			{
+				"id": 6,
+				"name": "prod #6"
+			},
+			{
+				"id": 7,
+				"name": "prod #7"
+			},
+			{
+				"id": 8,
+				"name": "prod #8"
+			},
+			{
+				"id": 9,
+				"name": "prod #9"
+			},
+			{
+				"id": 10,
+				"name": "prod #10"
+			},
+			{
+				"id": 11,
+				"name": "prod #11"
+			},
+			{
+				"id": 12,
+				"name": "prod #12"
+			}
+		]
+	}
+}
